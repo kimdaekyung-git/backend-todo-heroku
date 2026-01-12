@@ -1,0 +1,162 @@
+### API 테스트: Todo CRUD 작업
+# REST Client를 사용하여 아래 요청들을 테스트하세요.
+# VS Code에서 REST Client 확장 프로그램을 설치하세요: humao.rest-client
+
+@baseUrl = http://localhost:5000
+@contentType = application/json
+
+###############################################
+# 1. 서버 상태 확인
+###############################################
+
+GET {{baseUrl}}
+
+###############################################
+# 2. 회원가입 (User Registration)
+###############################################
+
+### 사용자 1 회원가입
+POST {{baseUrl}}/api/users/register
+Content-Type: {{contentType}}
+
+{
+  "name": "김철수",
+  "username": "testuser1",
+  "password": "password123"
+}
+
+### 사용자 2 회원가입
+POST {{baseUrl}}/api/users/register
+Content-Type: {{contentType}}
+
+{
+  "name": "이영희",
+  "username": "testuser2",
+  "password": "mypassword456"
+}
+
+### 중복 username 테스트 (409 에러 예상)
+POST {{baseUrl}}/api/users/register
+Content-Type: {{contentType}}
+
+{
+  "name": "박민수",
+  "username": "testuser1",
+  "password": "differentpass"
+}
+
+### 유효성 검사 테스트 - 필수 필드 누락 (400 에러 예상)
+POST {{baseUrl}}/api/users/register
+Content-Type: {{contentType}}
+
+{
+  "name": "홍길동"
+}
+
+### 유효성 검사 테스트 - 짧은 비밀번호 (400 에러 예상)
+POST {{baseUrl}}/api/users/register
+Content-Type: {{contentType}}
+
+{
+  "name": "최영수",
+  "username": "shortpw",
+  "password": "12345"
+}
+
+###############################################
+# 3. 새 할일 생성 (POST)
+###############################################
+
+### 할일 1 생성
+POST {{baseUrl}}/api/todos
+Content-Type: {{contentType}}
+
+{
+  "title": "MongoDB 스키마 학습하기",
+  "description": "Mongoose를 사용한 스키마 정의 방법 익히기",
+  "dueDate": "2026-01-15T23:59:59.999Z"
+}
+
+### 할일 2 생성 (설명 없이)
+POST {{baseUrl}}/api/todos
+Content-Type: {{contentType}}
+
+{
+  "title": "Node.js 복습하기"
+}
+
+### 할일 3 생성 (마감일 포함)
+POST {{baseUrl}}/api/todos
+Content-Type: {{contentType}}
+
+{
+  "title": "프로젝트 배포하기",
+  "description": "Heroku 또는 Vercel에 배포",
+  "dueDate": "2026-01-20T18:00:00.000Z"
+}
+
+### 유효성 검사 테스트 - 제목 없이 생성 시도 (에러 예상)
+POST {{baseUrl}}/api/todos
+Content-Type: {{contentType}}
+
+{
+  "description": "제목 없음"
+}
+
+###############################################
+# 4. 모든 할일 조회 (GET)
+###############################################
+
+GET {{baseUrl}}/api/todos
+
+###############################################
+# 5. 특정 할일 조회 (GET)
+###############################################
+
+### 특정 할일 조회 (ID를 실제 생성된 ID로 교체하세요)
+GET {{baseUrl}}/api/todos/YOUR_TODO_ID_HERE
+
+### 존재하지 않는 ID 조회 (404 에러 예상)
+GET {{baseUrl}}/api/todos/000000000000000000000000
+
+### 잘못된 ID 형식 (에러 예상)
+GET {{baseUrl}}/api/todos/invalid-id
+
+###############################################
+# 6. 할일 수정 (PUT)
+###############################################
+
+### 할일 수정 (ID를 실제 생성된 ID로 교체하세요)
+PUT {{baseUrl}}/api/todos/YOUR_TODO_ID_HERE
+Content-Type: {{contentType}}
+
+{
+  "title": "MongoDB 스키마 마스터하기",
+  "description": "고급 Mongoose 기능까지 학습",
+  "completed": true
+}
+
+###############################################
+# 7. 완료 상태 토글 (PATCH)
+###############################################
+
+### 완료 상태 토글 (ID를 실제 생성된 ID로 교체하세요)
+PATCH {{baseUrl}}/api/todos/YOUR_TODO_ID_HERE/toggle
+
+###############################################
+# 8. 할일 삭제 (DELETE)
+###############################################
+
+### 할일 삭제 (ID를 실제 생성된 ID로 교체하세요)
+DELETE {{baseUrl}}/api/todos/YOUR_TODO_ID_HERE
+
+###############################################
+# 테스트 순서 안내
+###############################################
+
+# 1. 먼저 서버 상태 확인
+# 2. 여러 개의 할일 생성 (POST 요청 3개)
+# 3. 모든 할일 조회하여 생성된 ID 확인
+# 4. 위에서 확인한 ID를 복사하여 YOUR_TODO_ID_HERE 부분에 붙여넣기
+# 5. 특정 할일 조회, 수정, 완료 토글, 삭제 테스트
+# 6. 마지막으로 모든 할일 조회하여 변경사항 확인

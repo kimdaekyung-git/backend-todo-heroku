@@ -31,6 +31,32 @@ app.get('/', (req, res) => {
   res.json({ message: 'Vibe Todo API Server' });
 });
 
+// MongoDB 연결 상태 확인 라우트
+app.get('/vibe-todo-mongo', (req, res) => {
+  const dbStatus = mongoose.connection.readyState;
+  const statusMessages = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+
+  if (dbStatus === 1) {
+    res.json({
+      status: 'success',
+      message: 'MongoDB 연결 성공',
+      dbStatus: statusMessages[dbStatus],
+      database: mongoose.connection.name || 'vibe-todo-mongo'
+    });
+  } else {
+    res.status(503).json({
+      status: 'error',
+      message: 'MongoDB 연결 실패',
+      dbStatus: statusMessages[dbStatus]
+    });
+  }
+});
+
 // API 라우트
 app.use('/api/todos', todoRoutes);
 app.use('/api/users', userRoutes);

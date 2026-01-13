@@ -14,13 +14,37 @@ app.use(cors()); // CORS 설정 추가
 // MongoDB 연결
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/vibe-todo-mongo';
 
-mongoose.connect(MONGODB_URI)
+// 환경변수 확인 (디버깅용 - 비밀번호는 마스킹)
+console.log('MONGODB_URI 설정 여부:', process.env.MONGODB_URI ? '환경변수 사용' : '기본값 사용');
+console.log('URI 시작부분:', MONGODB_URI.substring(0, 30) + '...');
+
+// MongoDB 연결 옵션
+const mongooseOptions = {
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+};
+
+mongoose.connect(MONGODB_URI, mongooseOptions)
   .then(() => {
     console.log('MongoDB 연결 성공');
+    console.log('연결된 데이터베이스:', mongoose.connection.name);
   })
   .catch((error) => {
-    console.error('MongoDB 연결 실패:', error);
+    console.error('MongoDB 연결 실패:', error.message);
   });
+
+// 연결 이벤트 리스너
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose 연결됨');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Mongoose 연결 에러:', err.message);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose 연결 끊김');
+});
 
 // 라우트
 const todoRoutes = require('./routes/todoRoutes');
@@ -41,18 +65,24 @@ app.get('/vibe-todo-mongo', (req, res) => {
     3: 'disconnecting'
   };
 
+  const response = {
+    dbStatus: statusMessages[dbStatus],
+    envVarSet: !!process.env.MONGODB_URI,
+    uriPrefix: MONGODB_URI.substring(0, 20) + '...'
+  };
+
   if (dbStatus === 1) {
     res.json({
       status: 'success',
       message: 'MongoDB 연결 성공',
-      dbStatus: statusMessages[dbStatus],
-      database: mongoose.connection.name || 'vibe-todo-mongo'
+      database: mongoose.connection.name || 'vibe-todo-mongo',
+      ...response
     });
   } else {
     res.status(503).json({
       status: 'error',
       message: 'MongoDB 연결 실패',
-      dbStatus: statusMessages[dbStatus]
+      ...response
     });
   }
 });
